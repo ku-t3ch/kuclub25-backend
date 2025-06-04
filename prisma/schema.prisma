@@ -1,0 +1,539 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model ActivityHours {
+  id             String   @id
+  project_id     String
+  file_path      String
+  is_completed   Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime
+  lastUpdateByid String
+  is_daft        Boolean  @default(true)
+  file_name      String
+  User           User     @relation(fields: [lastUpdateByid], references: [id])
+  Project        Project  @relation(fields: [project_id], references: [id])
+}
+
+model Announcement {
+  id             String    @id
+  title          String
+  content        String?
+  authorid       String?
+  activity_start DateTime?
+  activity_end   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime
+  User           User?     @relation(fields: [authorid], references: [id])
+}
+
+model Calendar {
+  id          String   @id
+  title       String?
+  url         String?
+  allDay      Boolean  @default(false)
+  start_date  DateTime
+  end_date    DateTime
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime
+  isActive    Boolean  @default(true)
+  description String?
+  User        User     @relation(fields: [ownerId], references: [id])
+}
+
+model Campus {
+  id              String         @id
+  idAutoIncrement Int            @default(autoincrement())
+  campusid        String?
+  name            String?
+  description     String?
+  Faculty         Faculty[]
+  Organization    Organization[]
+  User            User[]
+}
+
+model CancelProjectFile {
+  id        String   @id
+  projectId String?
+  file_path String
+  name      String?
+  Project   Project? @relation(fields: [projectId], references: [id])
+}
+
+model ESignature {
+  id            String         @id
+  name          String
+  image         String
+  position      Position
+  userid        String
+  projectid     String
+  project_id    String
+  info          String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime
+  projectStatus ProjectStatus?
+  role          Role?
+  customDate    DateTime?
+  Project       Project        @relation(fields: [projectid], references: [id])
+  User          User           @relation(fields: [userid], references: [id])
+}
+
+model EditMagicLink {
+  id              String   @id
+  project_id      String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime
+  can_edit_pages  Int[]
+  description     String?
+  name            String
+  ownerId         String?
+  is_edit_success Boolean  @default(false)
+  code            String?  @unique
+  User            User?    @relation(fields: [ownerId], references: [id])
+  Project         Project  @relation(fields: [project_id], references: [id])
+}
+
+model Faculty {
+  id        String  @id
+  facultyid String?
+  name      String?
+  campusid  String?
+  Campus    Campus? @relation(fields: [campusid], references: [id])
+  User      User[]
+}
+
+model File {
+  id            String         @id
+  project_id    String
+  file_path     String
+  type          FileType
+  userid        String?
+  projectStatus ProjectStatus?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime
+  name          String?
+  isDeleted     Boolean        @default(false)
+  deletedAt     DateTime?
+  Project       Project        @relation(fields: [project_id], references: [id])
+  User          User?          @relation(fields: [userid], references: [id])
+}
+
+model FileProjectExpReport {
+  id                                                                                     String            @id
+  file_path                                                                              String
+  userid                                                                                 String?
+  projectExpReportPhotoId                                                                String?
+  projectExpReportParticipantsId                                                         String?           @unique
+  createdAt                                                                              DateTime          @default(now())
+  updatedAt                                                                              DateTime
+  projectExpReportId                                                                     String?
+  projectExpReportUploadBySDId                                                           String?           @unique
+  ProjectExpReport_FileProjectExpReport_projectExpReportIdToProjectExpReport             ProjectExpReport? @relation("FileProjectExpReport_projectExpReportIdToProjectExpReport", fields: [projectExpReportId], references: [id])
+  ProjectExpReport_FileProjectExpReport_projectExpReportParticipantsIdToProjectExpReport ProjectExpReport? @relation("FileProjectExpReport_projectExpReportParticipantsIdToProjectExpReport", fields: [projectExpReportParticipantsId], references: [id])
+  ProjectExpReport_FileProjectExpReport_projectExpReportPhotoIdToProjectExpReport        ProjectExpReport? @relation("FileProjectExpReport_projectExpReportPhotoIdToProjectExpReport", fields: [projectExpReportPhotoId], references: [id])
+  ProjectExpReport_FileProjectExpReport_projectExpReportUploadBySDIdToProjectExpReport   ProjectExpReport? @relation("FileProjectExpReport_projectExpReportUploadBySDIdToProjectExpReport", fields: [projectExpReportUploadBySDId], references: [id])
+  User                                                                                   User?             @relation(fields: [userid], references: [id])
+}
+
+model Log {
+  id        String   @id
+  action    String
+  message   String?
+  userid    String?
+  createdAt DateTime @default(now())
+  User      User?    @relation(fields: [userid], references: [id])
+}
+
+model Organization {
+  id                              String           @id
+  orgid                           String
+  email                           String?
+  orgnameen                       String           @unique
+  orgnameth                       String           @unique
+  org_typeid                      String
+  telno                           String?
+  campusid                        String
+  organizationMark                OrganizationTag? @default(STUDENT)
+  createdAt                       DateTime         @default(now())
+  updatedAt                       DateTime
+  sab_setting_project_can_request Boolean          @default(true)
+  org_image                       String?
+  description                     String?
+  instagram                       String?
+  facebook                        String?
+  details                         String?
+  views                           Int              @default(0)
+  org_nickname                    String?          @default("")
+  Campus                          Campus           @relation(fields: [campusid], references: [id])
+  OrganizationType                OrganizationType @relation(fields: [org_typeid], references: [id])
+  Project                         Project[]
+  Tag                             Tag[]
+  User                            User[]
+}
+
+model OrganizationType {
+  id           String         @id
+  name         String
+  Organization Organization[]
+}
+
+model Project {
+  id                                      String                    @id
+  idAutoIncrement                         Int                       @default(autoincrement())
+  book_issue                              String?
+  date_issuing_books                      DateTime?
+  date_start_the_project                  DateTime?
+  date_end_the_project                    DateTime?
+  project_location                        String?
+  project_bugdet_require                  Float?
+  project_name_th                         String?
+  project_name_en                         String?
+  complianceStandard                      ComplianceStandard?
+  complianceStandardOther                 String?
+  kasetsartStudentIdentity                KasetsartStudentIdentity?
+  activity_code                           String?
+  activity_hours                          Json?
+  sustainable_development_goals           SDG[]
+  principles_and_reasoning                String?
+  project_objectives                      String[]
+  number_of_project_participants          Json?
+  activity_format                         String[]
+  percentage_of_project_participants      Float?
+  target_set                              Int?
+  expected_project_outcome                String[]
+  budget_use                              Json?
+  transportation_costs                    Json?
+  compensation_per_regulations            Json?
+  schedule                                Json?
+  organization_orgid                      String?
+  project_status                          ProjectStatus             @default(ProjectDaft)
+  tagId                                   String?
+  createdAt                               DateTime                  @default(now())
+  updatedAt                               DateTime
+  currentPage                             Int?                      @default(0)
+  userid                                  String?
+  borrowerid                              String?
+  userId                                  String?
+  stakeholder_advisor_uid                 String?
+  stakeholder_leader_uid                  String?
+  stakeholder_treasurer_json              Json?
+  is_sd_announce_budget                   Boolean                   @default(false)
+  project_president_id                    String?
+  create_project_date                     DateTime?
+  last_sab_approve_reject_budget          DateTime?
+  last_sc_approve_reject_budget           DateTime?
+  num_sab_approve_reject_budget           Int?                      @default(0)
+  num_sc_approve_reject_budget            Int?                      @default(0)
+  outside_kaset                           Json?
+  budget_approve                          Float?
+  budget_calculate                        Float?
+  tagId2                                  String?
+  ActivityHours                           ActivityHours[]
+  CancelProjectFile                       CancelProjectFile[]
+  ESignature                              ESignature[]
+  EditMagicLink                           EditMagicLink[]
+  File                                    File[]
+  User_Project_borroweridToUser           User?                     @relation("Project_borroweridToUser", fields: [borrowerid], references: [id])
+  Organization                            Organization?             @relation(fields: [organization_orgid], references: [id])
+  User_Project_project_president_idToUser User?                     @relation("Project_project_president_idToUser", fields: [project_president_id], references: [id])
+  Tag_Project_tagId2ToTag                 Tag?                      @relation("Project_tagId2ToTag", fields: [tagId2], references: [id])
+  Tag_Project_tagIdToTag                  Tag?                      @relation("Project_tagIdToTag", fields: [tagId], references: [id])
+  User_Project_useridToUser               User?                     @relation("Project_useridToUser", fields: [userid], references: [id])
+  ProjectBudgetHistory                    ProjectBudgetHistory[]
+  ProjectExpReport                        ProjectExpReport?
+  ProjectSA1History                       ProjectSA1History[]
+  ProjectSA2History                       ProjectSA2History[]
+  ShortLink                               ShortLink[]
+}
+
+model ProjectBudgetHistory {
+  id          String                   @id
+  projectid   String
+  budget      Float?
+  userid      String
+  type        ProjectBudgetHistoryType @default(Approve)
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime
+  position    Position?
+  role        Role?
+  reason      String?
+  fromStatus  ProjectStatus?
+  toStatus    ProjectStatus?
+  from_budget Float?
+  Project     Project                  @relation(fields: [projectid], references: [id])
+  User        User                     @relation(fields: [userid], references: [id])
+}
+
+model ProjectExpReport {
+  id                                                                                         String                 @id
+  projectid                                                                                  String                 @unique
+  problems_and_obstacles                                                                     String?
+  suggestions_for_next_project                                                               String?
+  project_success_index                                                                      Json?
+  project_budget                                                                             Json?
+  createdAt                                                                                  DateTime               @default(now())
+  updatedAt                                                                                  DateTime
+  address                                                                                    Json?
+  written_at                                                                                 String?
+  written_date                                                                               DateTime?
+  expense_details                                                                            Json?
+  payment_evidence_count                                                                     Int?
+  remaining_budget_to_return                                                                 Float?
+  total_expenses                                                                             Float?
+  avg_score                                                                                  Json?
+  number_of_participants                                                                     Json?
+  date_start_the_project                                                                     DateTime?
+  project_location                                                                           String?
+  project_name                                                                               String?
+  date_end_the_project                                                                       DateTime?
+  discount_details                                                                           Json?
+  total_discount                                                                             Float?
+  FileProjectExpReport_FileProjectExpReport_projectExpReportIdToProjectExpReport             FileProjectExpReport[] @relation("FileProjectExpReport_projectExpReportIdToProjectExpReport")
+  FileProjectExpReport_FileProjectExpReport_projectExpReportParticipantsIdToProjectExpReport FileProjectExpReport?  @relation("FileProjectExpReport_projectExpReportParticipantsIdToProjectExpReport")
+  FileProjectExpReport_FileProjectExpReport_projectExpReportPhotoIdToProjectExpReport        FileProjectExpReport[] @relation("FileProjectExpReport_projectExpReportPhotoIdToProjectExpReport")
+  FileProjectExpReport_FileProjectExpReport_projectExpReportUploadBySDIdToProjectExpReport   FileProjectExpReport?  @relation("FileProjectExpReport_projectExpReportUploadBySDIdToProjectExpReport")
+  Project                                                                                    Project                @relation(fields: [projectid], references: [id])
+}
+
+model ProjectSA1History {
+  id            String                @id
+  reason        String?
+  projectid     String
+  userid        String
+  type          ProjectSA1HistoryType
+  projectStatus ProjectStatus?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime
+  position      Position?
+  role          Role?
+  fromStatus    ProjectStatus?
+  toStatus      ProjectStatus?
+  message       String?
+  Project       Project               @relation(fields: [projectid], references: [id])
+  User          User                  @relation(fields: [userid], references: [id])
+}
+
+model ProjectSA2History {
+  id            String                @id
+  reason        String?
+  userid        String
+  role          Role?
+  position      Position?
+  projectStatus ProjectStatus?
+  fromStatus    ProjectStatus?
+  toStatus      ProjectStatus?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime
+  type          ProjectSA2HistoryType
+  projectid     String
+  Project       Project               @relation(fields: [projectid], references: [id])
+  User          User                  @relation(fields: [userid], references: [id])
+}
+
+model ShortLink {
+  id            String   @id
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime
+  original_link String?  @unique
+  short_link    String?  @unique
+  project_id    String?
+  count         Int?     @default(0)
+  Project       Project? @relation(fields: [project_id], references: [id])
+}
+
+model Tag {
+  id                          String        @id
+  name                        String
+  createdAt                   DateTime      @default(now())
+  updatedAt                   DateTime
+  year                        Int?
+  budgetType                  String?
+  organizationId              String?
+  Project_Project_tagId2ToTag Project[]     @relation("Project_tagId2ToTag")
+  Project_Project_tagIdToTag  Project[]     @relation("Project_tagIdToTag")
+  Organization                Organization? @relation(fields: [organizationId], references: [id])
+}
+
+model User {
+  id                                         String                 @id
+  name                                       String?
+  idCode                                     String?                @unique
+  email                                      String?                @unique
+  emailVerified                              DateTime?
+  image                                      String?
+  campusid                                   String?
+  facultyId                                  String?
+  position                                   Position?
+  role                                       Role?
+  isDeleted                                  Boolean?               @default(false)
+  Year                                       Year?
+  PhoneNumber                                String?
+  signature                                  String?
+  organizationId                             String?
+  ActivityHours                              ActivityHours[]
+  Announcement                               Announcement[]
+  Calendar                                   Calendar[]
+  ESignature                                 ESignature[]
+  EditMagicLink                              EditMagicLink[]
+  File                                       File[]
+  FileProjectExpReport                       FileProjectExpReport[]
+  Log                                        Log[]
+  Project_Project_borroweridToUser           Project[]              @relation("Project_borroweridToUser")
+  Project_Project_project_president_idToUser Project[]              @relation("Project_project_president_idToUser")
+  Project_Project_useridToUser               Project[]              @relation("Project_useridToUser")
+  ProjectBudgetHistory                       ProjectBudgetHistory[]
+  ProjectSA1History                          ProjectSA1History[]
+  ProjectSA2History                          ProjectSA2History[]
+  Campus                                     Campus?                @relation(fields: [campusid], references: [id])
+  Faculty                                    Faculty?               @relation(fields: [facultyId], references: [id])
+  Organization                               Organization?          @relation(fields: [organizationId], references: [id])
+
+  @@unique([idCode, email])
+}
+
+enum ComplianceStandard {
+  KNOWLEDGE
+  SKILLS
+  ETHICS
+  PERSONAL_CHARACTERISTICS
+}
+
+enum FileType {
+  Attachment
+  AttachmentSA1
+  AttachmentSA2
+  SA1
+  SA2
+}
+
+enum KasetsartStudentIdentity {
+  INTEGRITY
+  DETERMINATION
+  KNOWLEDGE_CREATION
+  UNITY
+}
+
+enum OrganizationTag {
+  SAB
+  SC
+  STUDENT
+}
+
+enum Position {
+  NonePosition
+  OrganizationLeader
+  OrganzationAdvisor
+  OrganzationMember
+  SDHead
+  SDStaff
+  SDFinancial
+}
+
+enum ProjectBudgetHistoryType {
+  Approve
+  Reject
+  Undo
+}
+
+enum ProjectSA1HistoryType {
+  Approve
+  Reject
+  Undo
+  MakePresident
+  RemovePresident
+  StartMagicLink
+  EndMagicLink
+  DeleteMagicLink
+  CancelProject
+}
+
+enum ProjectSA2HistoryType {
+  Approve
+  Reject
+  Undo
+  MakePresident
+  RemovePresident
+}
+
+enum ProjectStatus {
+  ProjectDaft
+  ProjectCreated
+  ProjectRejected
+  BudgetApproveSAB
+  BudgetApproveSC
+  AnnouncementBudgetSD
+  SA1_OG_PJ_Approved
+  SA1_OG_HD_Approved
+  SA1_OG_AV_Approved
+  SA1_SAB_HD_Approved
+  SA1_SD_CK_Approved
+  SA1_SD_AT_Approved
+  SA1_SD_FC_Approved
+  Project_Cancel
+  SA1_OG_HD_Rejected
+  SA1_OG_AV_Rejected
+  SA1_SAB_HD_Rejected
+  SA1_SD_CK_Rejected
+  SA1_SD_AT_Rejected
+  SA1_SD_FC_Rejected
+  SA1_Successful
+  SA2_Created
+  SA2_OG_PJ_Approved
+  SA2_OG_HD_Approved
+  SA2_OG_AV_Approved
+  SA2_SAB_HD_Approved
+  SA2_SD_CK_Approved
+  SA2_SD_AT_Approved
+  UploadSuccess
+  ProjectSuccessful
+  SA2_OG_HD_Rejected
+  SA2_OG_AV_Rejected
+  SA2_SAB_HD_Rejected
+  SA2_SD_CK_Rejected
+  SA2_SD_AT_Rejected
+  SA2_SD_FC_Rejected
+}
+
+enum Role {
+  STUDENT
+  SAB
+  SC
+  SD
+  SUPPER_ADMIN
+}
+
+enum SDG {
+  SDG1
+  SDG2
+  SDG3
+  SDG4
+  SDG5
+  SDG6
+  SDG7
+  SDG8
+  SDG9
+  SDG10
+  SDG11
+  SDG12
+  SDG13
+  SDG14
+  SDG15
+  SDG16
+  SDG17
+}
+
+enum Year {
+  YEAR1
+  YEAR2
+  YEAR3
+  YEAR4
+  YEAR5
+}
