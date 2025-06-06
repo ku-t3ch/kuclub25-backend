@@ -83,11 +83,11 @@ export const transformProjectData = (project: any) => {
   
   return {
     id: project.id,
-    date_start: project.date_start,
-    date_end: project.date_end,
+    date_start: project.date_start_the_project,
+    date_end: project.date_end_the_project,
     location: project.location,
-    name_en: project.name_en,
-    name_th: project.name_th,
+    name_en: project.project_name_en,
+    name_th: project.project_name_th,
     org_nickname: project.org_nickname,
     org_name_en: project.org_name_en || project.orgnameen,
     org_name_th: project.org_name_th || project.orgnameth,
@@ -99,7 +99,5 @@ export const transformProjectData = (project: any) => {
     outside_kaset: parsedOutsideKaset,
     principal_reasoning: project.principal_reasoning,
     project_objectives: parsedObjectives,
-    created_at: project.created_at,
-    updated_at: project.updated_at
   };
 };
