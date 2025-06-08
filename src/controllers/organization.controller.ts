@@ -57,6 +57,7 @@ export const getOrganizationById = async (
         o.id, 
         o.orgnameen, 
         o.orgnameth, 
+        o.details,
         o."organizationMark", 
         o.org_image, 
         o.description, 
