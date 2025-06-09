@@ -23,7 +23,7 @@ const PORT = process.env.PORT || 4000;
 app.use(helmet());
 app.use(cors({
   origin: [
-    'http://localhost:5173',
+    'http://172.20.10.4:3000',
     ...(process.env.ADDITIONAL_FRONTEND_URLS?.split(',') || [])
   ],
   credentials: true
@@ -131,10 +131,11 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔗 API Base URL: http://localhost:${PORT}`);
+  console.log(`🔗 Local URL: http://localhost:${PORT}`);
+  console.log(`🌐 Network URL: http://172.20.10.4:${PORT}`);
   console.log(`📚 Available endpoints (🔒 = Token Required):`);
   console.log(`   POST  /api/auth/get-token`);
   console.log(`   🔒 GET  /api/projects`);
@@ -144,5 +145,4 @@ app.listen(PORT, () => {
   console.log(`\n📝 Usage: Include 'Authorization: Bearer <token>' header for protected routes`);
   console.log(`📖 Documentation: http://localhost:${PORT}/api-docs`);
 });
-
 export default app;
