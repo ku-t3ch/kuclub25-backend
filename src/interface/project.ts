@@ -51,6 +51,7 @@ export interface Project {
   org_name_en?: string;
   org_name_th?: string;
   organization_orgid: string; // Organization ID
+  campus_name?: string;
   
   // Project details
   activity_hours: ActivityHours | string;
@@ -59,8 +60,7 @@ export interface Project {
   schedule: Schedule | string; // ตารางเวลา
   outside_kaset: OutsideKaset | string | null; // ข้อมูลสถานที่นอก มก.
   
-
-  principal_and_reasoning?: string; // Database field name
+  // Project reasoning and objectives
+  principles_and_reasoning?: string; 
   project_objectives?: string[] | string;
-
 }

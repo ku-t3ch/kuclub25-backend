@@ -34,9 +34,11 @@ export const getAllProjects = async (
         p.project_objectives,
         o.orgnameen as org_name_en,
         o.orgnameth as org_name_th,
-        o.org_nickname
+        o.org_nickname,
+        c.name as campus_name
       FROM "Project" p
       LEFT JOIN "Organization" o ON p.organization_orgid = o.id
+      LEFT JOIN "Campus" c ON o.campusid = c.id
       WHERE p.project_status = 'SA1_SD_AT_Approved'
       ORDER BY p."createdAt" DESC`
     );
@@ -90,9 +92,11 @@ export const getProjectById = async (
         p.project_objectives,
         o.orgnameen as org_name_en,
         o.orgnameth as org_name_th,
-        o.org_nickname
+        o.org_nickname,
+        c.name as campus_name
       FROM "Project" p
       LEFT JOIN "Organization" o ON p.organization_orgid = o.id
+      LEFT JOIN "Campus" c ON o.campusid = c.id
       WHERE p.project_status = 'SA1_SD_AT_Approved'
       AND p.id = $1`,
       [id]
@@ -155,9 +159,11 @@ export const getProjectsByOrganization = async (
         p.project_objectives,
         o.orgnameen as org_name_en,
         o.orgnameth as org_name_th,
-        o.org_nickname
+        o.org_nickname,
+        c.name as campus_name
       FROM "Project" p
       LEFT JOIN "Organization" o ON p.organization_orgid = o.id
+      LEFT JOIN "Campus" c ON o.campusid = c.id
       WHERE p.organization_orgid = $1
       AND p.project_status = 'SA1_SD_AT_Approved'
       ORDER BY p."createdAt" DESC`,
