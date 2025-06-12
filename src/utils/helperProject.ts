@@ -73,7 +73,7 @@ export const parseOutsideKaset = (outside: string | OutsideKaset | null): Outsid
   return outside;
 };
 
-export const transformProjectData = (project: any) => {
+export const  transformProjectData = (project: any) => {
   const parsedHours = parseActivityHours(project.activity_hours);
   const parsedFormat = parseActivityFormat(project.activity_format);
   const parsedOutcome = parseExpectedOutcome(project.expected_project_outcome);
