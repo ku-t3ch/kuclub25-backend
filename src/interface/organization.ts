@@ -11,4 +11,5 @@ export interface Organization {
   org_nickname: string;
   org_type_name?: string;
   campus_name?: string;
+  campid?: string;
 }
