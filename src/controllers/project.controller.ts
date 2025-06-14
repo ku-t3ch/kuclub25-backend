@@ -39,7 +39,7 @@ export const getAllProjects = async (
       FROM "Project" p
       LEFT JOIN "Organization" o ON p.organization_orgid = o.id
       LEFT JOIN "Campus" c ON o.campusid = c.id
-      WHERE p.project_status = 'SA1_SD_AT_Approved'
+      WHERE p.project_status = 'SA1_Successful'
       ORDER BY p."createdAt" DESC`
     );
 
