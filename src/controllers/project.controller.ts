@@ -1,14 +1,19 @@
 import { Request, Response } from "express";
-import { query } from "../configs/db";
-import {
-  parseActivityHours,
-  parseActivityFormat,
-  parseExpectedOutcome,
-  parseProjectObjectives,
-  parseSchedule,
-  parseOutsideKaset,
-  transformProjectData,
-} from "../utils/helperProject";
+import { APIService } from "../services/apiService";
+import { transformProjectData } from "../utils/helperProject";
+import { APIProject } from "../interface/saku_api";
+
+// Helper function to transform project data
+const transformProject = (project: APIProject) => {
+  const transformedProject = {
+    ...project,
+    org_name_en: project.Organization?.orgnameen,
+    org_name_th: project.Organization?.orgnameth,
+    org_nickname: project.Organization?.org_nickname,
+    campus_name: project.Organization?.campus?.name,
+  };
+  return transformProjectData(transformedProject);
+};
 
 // Get all projects
 export const getAllProjects = async (
@@ -16,44 +21,33 @@ export const getAllProjects = async (
   res: Response
 ): Promise<void> => {
   try {
-    const result = await query(
-      `SELECT 
-        p.id, 
-        p.date_start_the_project, 
-        p.date_end_the_project, 
-        p.project_location, 
-        p.project_name_en, 
-        p.project_name_th, 
-        p.activity_hours,
-        p.activity_format,
-        p.expected_project_outcome,
-        p.schedule,
-        p.organization_orgid,
-        p.outside_kaset,
-        p.principles_and_reasoning,
-        p.project_objectives,
-        o.orgnameen as org_name_en,
-        o.orgnameth as org_name_th,
-        o.org_nickname,
-        c.name as campus_name
-      FROM "Project" p
-      LEFT JOIN "Organization" o ON p.organization_orgid = o.id
-      LEFT JOIN "Campus" c ON o.campusid = c.id
-      WHERE p.project_status = 'SA1_Successful'
-      ORDER BY p."createdAt" DESC`
-    );
+    const projects = await APIService.getAllProjects();
 
-    const projectsWithParsedData = result.rows.map(transformProjectData);
+    if (!projects || projects.length === 0) {
+      res.status(200).json({
+        success: true,
+        data: [],
+        message: "No projects found",
+      });
+      return;
+    }
+
+    const projectsWithParsedData = projects.map(transformProject);
 
     res.status(200).json({
       success: true,
       data: projectsWithParsedData,
+      total: projectsWithParsedData.length,
     });
   } catch (error) {
     console.error("Error fetching projects:", error);
     res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: "Failed to fetch projects",
+      error:
+        process.env.NODE_ENV === "development"
+          ? (error as Error).message
+          : undefined,
     });
   }
 };
@@ -66,43 +60,18 @@ export const getProjectById = async (
   try {
     const { id } = req.params;
 
-    if (!id) {
+    // Validate ID parameter
+    if (!id || typeof id !== "string") {
       res.status(400).json({
         success: false,
-        message: "Project ID is required",
+        message: "Valid project ID is required",
       });
       return;
     }
 
-    const result = await query(
-      `SELECT 
-        p.id, 
-        p.date_start_the_project, 
-        p.date_end_the_project, 
-        p.project_location, 
-        p.project_name_en, 
-        p.project_name_th, 
-        p.activity_hours,
-        p.activity_format,
-        p.expected_project_outcome,
-        p.schedule,
-        p.organization_orgid,
-        p.outside_kaset,
-        p.principles_and_reasoning,
-        p.project_objectives,
-        o.orgnameen as org_name_en,
-        o.orgnameth as org_name_th,
-        o.org_nickname,
-        c.name as campus_name
-      FROM "Project" p
-      LEFT JOIN "Organization" o ON p.organization_orgid = o.id
-      LEFT JOIN "Campus" c ON o.campusid = c.id
-      WHERE p.project_status = 'SA1_SD_AT_Approved'
-      AND p.id = $1`,
-      [id]
-    );
+    const project = await APIService.getProjectById(id);
 
-    if (result.rows.length === 0) {
+    if (!project) {
       res.status(404).json({
         success: false,
         message: "Project not found",
@@ -110,7 +79,7 @@ export const getProjectById = async (
       return;
     }
 
-    const projectData = transformProjectData(result.rows[0]);
+    const projectData = transformProject(project);
 
     res.status(200).json({
       success: true,
@@ -120,7 +89,11 @@ export const getProjectById = async (
     console.error("Error fetching project by ID:", error);
     res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: "Failed to fetch project",
+      error:
+        process.env.NODE_ENV === "development"
+          ? (error as Error).message
+          : undefined,
     });
   }
 };
@@ -133,54 +106,42 @@ export const getProjectsByOrganization = async (
   try {
     const { orgId } = req.params;
 
-    if (!orgId) {
+    if (!orgId || typeof orgId !== "string") {
       res.status(400).json({
         success: false,
-        message: "Organization ID is required",
+        message: "Valid organization ID is required",
       });
       return;
     }
 
-    const result = await query(
-      `SELECT 
-        p.id, 
-        p.date_start_the_project, 
-        p.date_end_the_project, 
-        p.project_location, 
-        p.project_name_en, 
-        p.project_name_th, 
-        p.activity_hours,
-        p.activity_format,
-        p.expected_project_outcome,
-        p.schedule,
-        p.organization_orgid,
-        p.outside_kaset,
-        p.principles_and_reasoning,
-        p.project_objectives,
-        o.orgnameen as org_name_en,
-        o.orgnameth as org_name_th,
-        o.org_nickname,
-        c.name as campus_name
-      FROM "Project" p
-      LEFT JOIN "Organization" o ON p.organization_orgid = o.id
-      LEFT JOIN "Campus" c ON o.campusid = c.id
-      WHERE p.organization_orgid = $1
-      AND p.project_status = 'SA1_SD_AT_Approved'
-      ORDER BY p."createdAt" DESC`,
-      [orgId]
-    );
+    const projects = await APIService.getProjectsByOrganization(orgId);
 
-    const projectsWithParsedData = result.rows.map(transformProjectData);
+    if (!projects || projects.length === 0) {
+      res.status(200).json({
+        success: true,
+        data: [],
+        message: "No projects found for this organization",
+      });
+      return;
+    }
+
+    const projectsWithParsedData = projects.map(transformProject);
 
     res.status(200).json({
       success: true,
       data: projectsWithParsedData,
+      total: projectsWithParsedData.length,
+      organizationId: orgId,
     });
   } catch (error) {
     console.error("Error fetching projects by organization:", error);
     res.status(500).json({
       success: false,
-      message: "Internal Server Error",
+      message: "Failed to fetch projects for organization",
+      error:
+        process.env.NODE_ENV === "development"
+          ? (error as Error).message
+          : undefined,
     });
   }
 };

@@ -1,17 +1,22 @@
 import { Request, Response } from "express";
-import { query } from "../configs/db";
 
 export const getCampuses = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const result = await query(
-      `SELECT id, name FROM "Campus"`
-    );
+    const campuses = [
+      "วิทยาเขตบางเขน",
+      "วิทยาเขตกำแพงแสน",
+      "วิทยาเขตเฉลิมพระเกียรติ จังหวัดสกลนคร",
+      "วิทยาเขตศรีราชา",
+      "โครงการจัดตั้ง วิทยาเขตสุพรรณบุรี",
+      "สถาบันสมทบ"
+    ];
+    
     res.status(200).json({
       success: true,
-      data: result.rows
+      data: campuses
     });
   } catch (error) {
     console.error("Error fetching campuses:", error);
