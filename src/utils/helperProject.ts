@@ -1,14 +1,20 @@
 import { ActivityHours, Schedule, OutsideKaset } from "../interface/project";
 
-export const parseActivityHours = (activityHours: string | ActivityHours): ActivityHours => {
+export const parseActivityHours = (activityHours: string | ActivityHours | null): ActivityHours => {
+  if (!activityHours) {
+    return {};
+  }
+  
   if (typeof activityHours === 'string') {
     try {
-      return JSON.parse(activityHours);
+      const parsed = JSON.parse(activityHours);
+      return parsed || {};
     } catch (error) {
       console.error('Error parsing activity hours:', error);
       return {};
     }
   }
+  
   return activityHours || {};
 };
 
@@ -73,32 +79,37 @@ export const parseOutsideKaset = (outside: string | OutsideKaset | null): Outsid
   return outside;
 };
 
-export const  transformProjectData = (project: any) => {
-  const parsedHours = parseActivityHours(project.activity_hours);
-  const parsedFormat = parseActivityFormat(project.activity_format);
-  const parsedOutcome = parseExpectedOutcome(project.expected_project_outcome);
-  const parsedObjectives = parseProjectObjectives(project.project_objectives);
-  const parsedSchedule = parseSchedule(project.schedule);
-  const parsedOutsideKaset = parseOutsideKaset(project.outside_kaset);
-  
-  return {
-    id: project.id,
-    date_start: project.date_start_the_project,
-    date_end: project.date_end_the_project,
-    location: project.project_location,
-    campus_name: project.campus_name,
-    name_en: project.project_name_en,
-    name_th: project.project_name_th,
-    org_nickname: project.org_nickname,
-    org_name_en: project.org_name_en || project.orgnameen,
-    org_name_th: project.org_name_th || project.orgnameth,
-    activity_hours: parsedHours,
-    activity_format: parsedFormat,
-    expected_project_outcome: parsedOutcome,
-    schedule: parsedSchedule,
-    organization_orgid: project.organization_orgid,
-    outside_kaset: parsedOutsideKaset,
-    principal_reasoning: project.principal_reasoning,
-    project_objectives: parsedObjectives,
-  };
+export const transformProjectData = (project: any) => {
+  try {
+    const parsedHours = parseActivityHours(project.activity_hours);
+    const parsedFormat = parseActivityFormat(project.activity_format || []);
+    const parsedOutcome = parseExpectedOutcome(project.expected_project_outcome || []);
+    const parsedObjectives = parseProjectObjectives(project.project_objectives || []);
+    const parsedSchedule = parseSchedule(project.schedule);
+    const parsedOutsideKaset = parseOutsideKaset(project.outside_kaset);
+    
+    return {
+      id: project.id,
+      date_start: project.date_start_the_project,
+      date_end: project.date_end_the_project,
+      location: project.project_location,
+      campus_name: project.campus_name || project.Organization?.campus?.name,
+      name_en: project.project_name_en,
+      name_th: project.project_name_th,
+      org_nickname: project.org_nickname || project.Organization?.org_nickname,
+      org_name_en: project.org_name_en || project.Organization?.orgnameen,
+      org_name_th: project.org_name_th || project.Organization?.orgnameth,
+      activity_hours: parsedHours,
+      activity_format: parsedFormat,
+      expected_project_outcome: parsedOutcome,
+      schedule: parsedSchedule,
+      organization_orgid: project.organization_orgid,
+      outside_kaset: parsedOutsideKaset,
+      principles_and_reasoning: project.principles_and_reasoning,
+      project_objectives: parsedObjectives,
+    };
+  } catch (error) {
+    console.error('Error transforming project data:', error);
+    return project; // Return original if transformation fails
+  }
 };

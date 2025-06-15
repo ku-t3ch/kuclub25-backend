@@ -1,41 +1,42 @@
 import { Request, Response } from "express";
-import { query } from "../configs/db";
-import { Organization } from "../interface/organization";
+import { APIService } from "../services/apiService";
+import { APIOrganization } from "../interface/saku_api";
+
+const transformOrganization = (org: APIOrganization) => ({
+  ...org,
+  org_type_name: org.org_type?.name,
+  campus_name: org.campus?.name,
+});
 
 export const getOrganizationsAll = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    const result = await query(
-      `SELECT 
-        o.id, 
-        o.orgnameen, 
-        o.orgnameth, 
-        o."organizationMark", 
-        o.org_image, 
-        o.description,
-        o.instagram,
-        o.facebook,
-        o.views, 
-        o.org_nickname,
-        ot.name as org_type_name,
-        c.name as campus_name,
-        c.id as campus_id
-      FROM "Organization" o
-      LEFT JOIN "OrganizationType" ot ON o.org_typeid = ot.id
-      LEFT JOIN "Campus" c ON o.campusid = c.id
-      ORDER BY o.views DESC`
-    );
+    const organizations = await APIService.getAllOrganizations();
+
+    if (!organizations || organizations.length === 0) {
+      res.status(200).json({
+        success: true,
+        data: [],
+        message: "No organizations found",
+      });
+      return;
+    }
+
+    const transformedOrganizations = organizations.map(transformOrganization);
+
     res.status(200).json({
       success: true,
-      data: result.rows
+      data: transformedOrganizations,
+      total: transformedOrganizations.length,
     });
   } catch (error) {
     console.error("Error fetching organizations:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Internal server error" 
+      message: "Failed to fetch organizations",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
@@ -44,94 +45,40 @@ export const getOrganizationById = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const orgId = req.params.id;
-  if (!orgId) {
-    res.status(400).json({ 
-      success: false,
-      message: "Organization ID is required" 
-    });
-    return;
-  }
   try {
-    const result = await query(
-      `SELECT 
-        o.id, 
-        o.orgnameen, 
-        o.orgnameth, 
-        o.details,
-        o."organizationMark", 
-        o.org_image, 
-        o.description, 
-        o.instagram, 
-        o.facebook, 
-        o.views, 
-        o.org_nickname,
-        ot.name as org_type_name,
-        c.id as campus_id,
-        c.name as campus_name
-      FROM "Organization" o
-      LEFT JOIN "OrganizationType" ot ON o.org_typeid = ot.id
-      LEFT JOIN "Campus" c ON o.campusid = c.id
-      WHERE o.id = $1`,
-      [orgId]
-    );
-    if (result.rows.length === 0) {
-      res.status(404).json({ 
+    const { id } = req.params;
+
+    // Validate ID parameter
+    if (!id || typeof id !== "string") {
+      res.status(400).json({
         success: false,
-        message: "Organization not found" 
+        message: "Valid organization ID is required",
       });
       return;
     }
+
+    const organization = await APIService.getOrganizationById(id);
+
+    if (!organization) {
+      res.status(404).json({
+        success: false,
+        message: "Organization not found",
+      });
+      return;
+    }
+
+    const transformedOrganization = transformOrganization(organization);
+
     res.status(200).json({
       success: true,
-      data: result.rows[0]
+      data: transformedOrganization,
     });
   } catch (error) {
     console.error("Error fetching organization by ID:", error);
-    res.status(500).json({ 
+    res.status(500).json({
       success: false,
-      message: "Internal server error" 
+      message: "Failed to fetch organization",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 };
-
-
-export const updateViewsCount = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const orgId = req.params.id;
-  if (!orgId) {
-    res.status(400).json({ 
-      success: false,
-      message: "Organization ID is required" 
-    });
-    return;
-  }
-  try {
-    const result = await query(
-      `UPDATE "Organization" 
-       SET views = views + 1 
-       WHERE id = $1 
-       RETURNING *`,
-      [orgId]
-    );
-    if (result.rows.length === 0) {
-      res.status(404).json({ 
-        success: false,
-        message: "Organization not found" 
-      });
-      return;
-    }
-    res.status(200).json({
-      success: true,
-      data: result.rows[0]
-    });
-  } catch (error) {
-    console.error("Error updating views count:", error);
-    res.status(500).json({ 
-      success: false,
-      message: "Internal server error" 
-    });
-  }
-}
