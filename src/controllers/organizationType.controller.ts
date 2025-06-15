@@ -1,16 +1,20 @@
 import { Request, Response } from 'express';
-import { query } from '../configs/db';
-import { OrganizationType } from '../interface/organizationType';
 
 export const getOrganizationTypes = async (req: Request, res: Response): Promise<void> => {
   try {
-    const result = await query(
-        'SELECT id, name FROM "OrganizationType" ORDER BY name ASC'
-    );
+    const organizationTypes = [
+      "องค์การนิสิต",
+      "ชมรมด้านศิลปวัฒนธรรม",
+      "ชมรมด้านบำเพ็ญประโยชน์",
+      "ชมรมด้านวิชาการ",
+      "ชมรมด้านกีฬา",
+      "กลุ่มกิจกรรมนิสิต",
+      "สโมสรนิสิต"
+    ];
     
     res.status(200).json({
       success: true,
-      data: result.rows
+      data: organizationTypes
     });
   } catch (error) {
     console.error("Error fetching organization types:", error);
