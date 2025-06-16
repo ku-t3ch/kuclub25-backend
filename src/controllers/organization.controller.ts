@@ -48,7 +48,6 @@ export const getOrganizationById = async (
   try {
     const { id } = req.params;
 
-    // Validate ID parameter
     if (!id || typeof id !== "string") {
       res.status(400).json({
         success: false,
@@ -78,6 +77,53 @@ export const getOrganizationById = async (
     res.status(500).json({
       success: false,
       message: "Failed to fetch organization",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
+export const updateViewCount = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    if (!id || typeof id !== "string") {
+      res.status(400).json({
+        success: false,
+        message: "Valid organization ID is required",
+      });
+      return;
+    }
+
+    const updatedOrganization = await APIService.updateOrganizationViewCount(id);
+
+    if (!updatedOrganization) {
+      res.status(500).json({
+        success: false,
+        message: "Failed to update view count in database",
+      });
+      return;
+    }
+
+    const transformedOrganization = transformOrganization(updatedOrganization);
+
+    res.status(200).json({
+      success: true,
+      message: "View count updated successfully",
+      data: {
+        id: updatedOrganization.id,
+        currentViews: updatedOrganization.views,
+        updated: true,
+        organization: transformedOrganization, // ส่งข้อมูล organization ทั้งหมด
+      },
+    });
+  } catch (error) {
+    console.error("Error updating view count:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update view count",
       error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }

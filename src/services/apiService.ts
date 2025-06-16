@@ -2,6 +2,35 @@ import { fetchKUClubData } from "../configs/api";
 import { APIProject, APIOrganization } from "../interface/saku_api";
 
 export class APIService {
+  static async updateOrganizationViewCount(
+    organizationId: string
+  ): Promise<APIOrganization | null> {
+    try {
+      
+      const updateUrl = `${process.env.SAKU_API_URL}/api/organization/${organizationId}/view`;
+      const response = await fetch(updateUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.SECRET_KEY_KUCLUB}`,
+        },
+        body: JSON.stringify({
+          action: "increment_view",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to update view count: ${response.status}`);
+      }
+
+      const updatedData = await response.json();
+      return updatedData.organization || null;
+    } catch (error) {
+      console.error("Error updating view count:", error);
+      return null;
+    }
+  }
+
   static async getAllProjects(): Promise<APIProject[]> {
     const data = await fetchKUClubData();
     return data.projects;
@@ -16,7 +45,9 @@ export class APIService {
     organizationId: string
   ): Promise<APIProject[]> {
     const data = await fetchKUClubData();
-    return data.projects.filter((project) => project.organization_orgid === organizationId);
+    return data.projects.filter(
+      (project) => project.organization_orgid === organizationId
+    );
   }
 
   static async getAllOrganizations(): Promise<APIOrganization[]> {
@@ -29,40 +60,5 @@ export class APIService {
   ): Promise<APIOrganization | null> {
     const data = await fetchKUClubData();
     return data.organizations.find((org) => org.id === organizationId) || null;
-  }
-
-  static async getProjectStats() {
-    const data = await fetchKUClubData();
-
-    return {
-      totalProjects: data.projects.length,
-      totalOrganizations: data.organizations.length,
-    };
-  }
-
-  static async getUniqueCampuses(): Promise<string[]> {
-    const data = await fetchKUClubData();
-    const campusSet = new Set<string>();
-
-    data.organizations.forEach((org) => {
-      if (org.campus?.name) {
-        campusSet.add(org.campus.name);
-      }
-    });
-
-    return Array.from(campusSet).sort();
-  }
-
-  static async getUniqueOrganizationTypes(): Promise<string[]> {
-    const data = await fetchKUClubData();
-    const typeSet = new Set<string>();
-
-    data.organizations.forEach((org) => {
-      if (org.org_type?.name) {
-        typeSet.add(org.org_type.name);
-      }
-    });
-
-    return Array.from(typeSet).sort();
   }
 }
