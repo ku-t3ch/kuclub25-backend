@@ -3,7 +3,6 @@ import { KUClubAPIResponse } from "../interface/saku_api";
 
 dotenv.config();
 
-const SAKU_API_URL = process.env.SAKU_API_URL;
 
 interface TRPCResponse {
   result?: {
@@ -17,7 +16,7 @@ export const fetchKUClubData = async (
   organizationId?: string
 ): Promise<KUClubAPIResponse> => {
   try {
-    let url = SAKU_API_URL;
+    let url = `${process.env.SAKU_API_URL_GET_KUCLUB}`;
 
     if (organizationId) {
       const params = new URLSearchParams({
@@ -25,6 +24,8 @@ export const fetchKUClubData = async (
       });
       url += `?${params.toString()}`;
     }
+
+    console.log("Fetching KU Club data from:", url);
 
     const response = await fetch(url, {
       method: "GET",
@@ -41,9 +42,12 @@ export const fetchKUClubData = async (
     }
 
     const data = (await response.json()) as TRPCResponse;
+    console.log("Raw TRPC response:", JSON.stringify(data, null, 2));
+
     const actualData = data.result?.data?.json;
 
     if (!actualData) {
+      console.warn("No data found in TRPC response");
       return {
         projects: [],
         organizations: [],
@@ -55,9 +59,11 @@ export const fetchKUClubData = async (
       organizations: Array.isArray(actualData.organizations) ? actualData.organizations : [],
     };
 
+    console.log(`Fetched ${result.organizations.length} organizations and ${result.projects.length} projects`);
     return result;
 
   } catch (error) {
+    console.error("Error fetching KU Club data:", error);
     return {
       projects: [],
       organizations: [],

@@ -128,6 +128,7 @@ app.get("/api", (req, res) => {
       organizations: {
         "GET /api/organizations": "Get all organizations",
         "GET /api/organizations/:id": "Get organization by ID",
+        "PUT /api/organizations/:id/views": "Update organization view count",
 
       },
       utilities: {
