@@ -27,4 +27,5 @@ export const verifyToken = (token: string): JWTPayload => {
 
 // Add this export for backward compatibility
 export const getClientToken = generateStaticToken; 
+//CHECK 12 
 // This function is kept for backward compatibility with existing code that may use it
