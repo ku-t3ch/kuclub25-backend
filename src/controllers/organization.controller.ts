@@ -116,7 +116,7 @@ export const updateViewCount = async (
         id: updatedOrganization.id,
         currentViews: updatedOrganization.views,
         updated: true,
-        organization: transformedOrganization, // ส่งข้อมูล organization ทั้งหมด
+        organization: transformedOrganization, 
       },
     });
   } catch (error) {

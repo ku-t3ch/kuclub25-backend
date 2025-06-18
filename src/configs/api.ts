@@ -3,7 +3,6 @@ import { KUClubAPIResponse } from "../interface/saku_api";
 
 dotenv.config();
 
-
 interface TRPCResponse {
   result?: {
     data?: {
@@ -25,8 +24,6 @@ export const fetchKUClubData = async (
       url += `?${params.toString()}`;
     }
 
-    console.log("Fetching KU Club data from:", url);
-
     const response = await fetch(url, {
       method: "GET",
       headers: {
@@ -42,7 +39,6 @@ export const fetchKUClubData = async (
     }
 
     const data = (await response.json()) as TRPCResponse;
-    console.log("Raw TRPC response:", JSON.stringify(data, null, 2));
 
     const actualData = data.result?.data?.json;
 
@@ -51,22 +47,47 @@ export const fetchKUClubData = async (
       return {
         projects: [],
         organizations: [],
+        campuses: [],
+        organizationsType: [],
       };
     }
 
+    // Transform projects to map public_id to id
+    const transformedProjects = (actualData.projects || []).map((project) => {
+      const { public_id, ...rest } = project as any;
+      return {
+        ...rest,
+        id: public_id || project.id, // Use public_id if available, fallback to id
+      };
+    });
+
     const result: KUClubAPIResponse = {
-      projects: Array.isArray(actualData.projects) ? actualData.projects : [],
-      organizations: Array.isArray(actualData.organizations) ? actualData.organizations : [],
+      projects: transformedProjects,
+      organizations: Array.isArray(actualData.organizations)
+        ? actualData.organizations
+        : [],
+      campuses: Array.isArray(actualData.campuses)
+        ? actualData.campuses
+        : Array.isArray(actualData.campus)
+        ? actualData.campus
+        : [], // Handle both 'campuses' and 'campus' field names
+      organizationsType: Array.isArray(actualData.organizationsType)
+        ? actualData.organizationsType
+        : Array.isArray(actualData.organizationType)
+        ? actualData.organizationType
+        : [], // Handle both field name variations
     };
 
-    console.log(`Fetched ${result.organizations.length} organizations and ${result.projects.length} projects`);
     return result;
-
   } catch (error) {
     console.error("Error fetching KU Club data:", error);
+
+    // Return empty structure on error
     return {
       projects: [],
       organizations: [],
+      campuses: [],
+      organizationsType: [],
     };
   }
 };

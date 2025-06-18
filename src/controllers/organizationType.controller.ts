@@ -1,17 +1,10 @@
 import { Request, Response } from 'express';
+import { APIService } from "../services/apiService";
+import { APIOrganizationType } from '../interface/saku_api';
 
 export const getOrganizationTypes = async (req: Request, res: Response): Promise<void> => {
   try {
-    const organizationTypes = [
-      "องค์การนิสิต",
-      "ชมรมด้านศิลปวัฒนธรรม",
-      "ชมรมด้านบำเพ็ญประโยชน์",
-      "ชมรมด้านวิชาการ",
-      "ชมรมด้านกีฬา",
-      "กลุ่มกิจกรรมนิสิต",
-      "สโมสรนิสิต"
-    ];
-    
+    const organizationTypes = await APIService.getAllOrganizationTypes();
     res.status(200).json({
       success: true,
       data: organizationTypes

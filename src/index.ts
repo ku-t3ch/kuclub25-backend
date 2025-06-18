@@ -15,7 +15,7 @@ import organizationTypeRoutes from "./routes/organizationType.route";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = Number(process.env.PORT) || 9000;
 
 // Middleware
 app.use(
@@ -23,9 +23,11 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
-        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
         imgSrc: ["'self'", "data:", "https:"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        connectSrc: ["'self'", "https:"],
       },
     },
   })
@@ -48,7 +50,6 @@ app.use(
 
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
 
-// Enhanced JSON parsing with error handling
 app.use(
   express.json({
     limit: "10mb",
@@ -82,7 +83,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Setup Swagger documentation BEFORE routes
+
 setupSwagger(app);
 
 // Basic root endpoint
@@ -123,13 +124,11 @@ app.get("/api", (req, res) => {
         "GET /api/projects": "Get all projects",
         "GET /api/projects/:id": "Get project by ID",
         "GET /api/projects/organization/:orgId": "Get projects by organization",
-        
       },
       organizations: {
         "GET /api/organizations": "Get all organizations",
         "GET /api/organizations/:id": "Get organization by ID",
         "PUT /api/organizations/:id/views": "Update organization view count",
-
       },
       utilities: {
         "GET /api/campuses": "Get all campuses",
@@ -257,8 +256,8 @@ app.listen(PORT, "0.0.0.0", () => {
 
   console.log("\n📝 Available Endpoints:");
   console.log("   🔓 POST  /api/auth/get-token");
-  console.log("   🔒 GET   /api/projects (+ search, stats, filters)");
-  console.log("   🔒 GET   /api/organizations (+ stats, filters)");
+  console.log("   🔒 GET   /api/projects ");
+  console.log("   🔒 GET   /api/organizations ");
   console.log("   🔒 GET   /api/campuses");
   console.log("   🔒 GET   /api/organization-types");
 

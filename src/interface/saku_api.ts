@@ -42,6 +42,13 @@ export interface APIOrganization {
   } | null;
 }
 
+export interface APICampus {
+  name: string;
+}
+
+export interface APIOrganizationType {
+  name: string;
+}
 export interface ActivityHours {
   [key: string]: any;
 }
@@ -57,4 +64,6 @@ export interface OutsideKaset {
 export interface KUClubAPIResponse {
   projects: APIProject[];
   organizations: APIOrganization[];
+  campuses: APICampus[];
+  organizationsType: APIOrganizationType[];
 }
