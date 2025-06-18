@@ -15,7 +15,7 @@ import organizationTypeRoutes from "./routes/organizationType.route";
 dotenv.config();
 
 const app = express();
-const PORT = Number(process.env.PORT) || 9000;
+const PORT = process.env.PORT;
 
 // Middleware
 app.use(
@@ -23,11 +23,9 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        styleSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://unpkg.com"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
         imgSrc: ["'self'", "data:", "https:"],
-        fontSrc: ["'self'", "https://fonts.gstatic.com"],
-        connectSrc: ["'self'", "https:"],
       },
     },
   })
